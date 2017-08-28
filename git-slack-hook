@@ -237,18 +237,18 @@ function notify() {
 
     # show the full commit message
     if [ "$fullcommit" == "true" ]; then
-      commitformat="%s%n%n%b"
+      commitformat="*%h* %s%n%n%b"
     else
-      commitformat="%s"
+      commitformat="*%h* %s"
     fi
 
     # Process the log and escape double quotes and backslashes; assuming commit names/messages don't have five of the following: & ; @
-    log_out=$( git log --pretty=format:"&&&&&%cN;;;;;${formattedurl}${commitformat}@@@@@" $countarg ${start}..${end} \
+    log_out=$( git log --reverse --pretty=format:"&&&&&%cN;;;;;%at;;;;;${formattedurl}${commitformat}@@@@@" $countarg ${start}..${end} \
         | perl -p -e 's/@@@@@\n+/@@@@@/mg' \
         | sed -e 's/\\/\\\\/g' \
         | sed -e 's/"/\\"/g' \
-        | sed -e 's/&&&&&\([^;]*\);;;;;/{ "fallback" : "", "color" : "good", "fields" : [{"title":"\1","value":"/g' \
-        | sed -e 's/@@@@@/","short":false},]},/g' \
+        | sed -e 's/&&&&&\([^;]*\);;;;;\([0-9]*\);;;;;/{ "fallback" : "", "color" : "good", "mrkdwn_in": ["text"], "ts":\2, "title":"\1","text":"/g' \
+        | sed -e 's/@@@@@/"},/g' \
         | sed -e 's/,\]/]/' )
 
     attachments="[${log_out%?}]"
